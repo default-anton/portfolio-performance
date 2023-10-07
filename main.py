@@ -29,12 +29,9 @@ df = pd.merge_asof(
     right_on="date",
     direction="backward",
 )
-df["PriceInAccountCurrency"] = df["Price"]
-df.loc[df["Currency"] == "CAD", "PriceInCAD"] = df["Price"]
-df.loc[df["Currency"] == "USD", "PriceInCAD"] = (
-    df["Price"] * df["FXUSDCAD"]
-)
-del df["Price"]
+
+df.loc[df["Currency"] == "USD", "Price"] *= df["FXUSDCAD"]
+df.loc[df["Currency"] == "USD", "Net Amount"] *= df["FXUSDCAD"]
 
 stocks = [s for s in df["Symbol"].dropna().unique() if not any(c.isdigit() for c in s)]
 # Securities listed on TSX often have .TO suffix
