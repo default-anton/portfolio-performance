@@ -2,6 +2,7 @@ import sys
 from datetime import date
 
 import pandas as pd
+
 # https://pypi.org/project/yfinance/
 import yfinance as yf
 
@@ -13,14 +14,14 @@ if len(sys.argv) < 2:
 
 
 df = pd.read_excel(sys.argv[1])
-df["Settlement Date"] = pd.to_datetime(df["Settlement Date"]).dt.date
-df["Transaction Date"] = pd.to_datetime(df["Transaction Date"]).dt.date
+df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
+df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
 
 start_date = df["Settlement Date"].min().isoformat()
 end_date = date.today().isoformat()
 
-stocks = [s for s in df["Symbol"].unique() if not any(c.isdigit() for c in s)]
+stocks = [s for s in df["Symbol"].dropna().unique() if not any(c.isdigit() for c in s)]
 tsx_stocks = [s for s in stocks if s.endswith(".TO")]
 # Remove TSX stocks without .TO suffix
 stocks = list(set(stocks) - set([s.removesuffix(".TO") for s in tsx_stocks]))
@@ -29,7 +30,7 @@ df["Symbol"] = df["Symbol"].replace(
     [s.removesuffix(".TO") for s in tsx_stocks], tsx_stocks
 )
 
-tsx_filter = df["Symbol"].map(lambda x: x + ".TO").isin(tsx_stocks)
+tsx_filter = df["Symbol"].map(lambda x: str(x) + ".TO").isin(tsx_stocks)
 df.loc[tsx_filter, "Symbol"] = df[tsx_filter]["Symbol"].map(lambda x: x + ".TO")
 
 rates_df = get_cadx_rates(start_date, end_date)
