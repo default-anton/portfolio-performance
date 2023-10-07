@@ -13,13 +13,18 @@ def get_cadx_rates(start_date: str, end_date: str):
 
         if rates_df["date"].min() > pd.to_datetime(start_date):
             rates_df = (
-                fetch_cadx_rates(start_date, rates_df["date"].min().isoformat())
+                fetch_cadx_rates(start_date, rates_df["date"].min().date().isoformat())
                 + rates_df
             )
 
         if rates_df["date"].max() < pd.to_datetime(end_date):
-            rates_df = rates_df + fetch_cadx_rates(
-                rates_df["date"].max().isoformat(), end_date
+            missing_rates_df = fetch_cadx_rates(
+                rates_df["date"].max().date().isoformat(), end_date
+            )
+            rates_df = (
+                pd.concat((rates_df, missing_rates_df), ignore_index=True)
+                .drop_duplicates()
+                .sort_values("date")
             )
 
         return rates_df
