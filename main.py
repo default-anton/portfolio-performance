@@ -2,7 +2,6 @@ import sys
 from datetime import date
 
 import pandas as pd
-
 # https://pypi.org/project/yfinance/
 import yfinance as yf
 
@@ -47,18 +46,27 @@ df.loc[tsx_filter, "Symbol"] = df[tsx_filter]["Symbol"].map(lambda x: x + ".TO")
 
 deposits_df = df[df["Activity Type"] == "Deposits"]
 withdrawals_df = df[df["Activity Type"] == "Withdrawals"]
-fees_and_rebates_df = df[df["Activity Type"] == "Fees and Rebates"]
+fees_and_rebates_df = df[df["Activity Type"] == "Fees and rebates"]
 interest_df = df[df["Activity Type"] == "Interest"]
 trades_df = df[df["Activity Type"] == "Trades"]
 dividents_df = df[df["Activity Type"] == "Dividends"]
 
-import pdb
 
-pdb.set_trace()
+print("Total deposits: {:.2f} CAD".format(deposits_df["Net Amount"].sum()))
+print("Total withdrawals: {:.2f} CAD".format(withdrawals_df["Net Amount"].sum()))
+print("Total fees and rebates: {:.2f} CAD".format(fees_and_rebates_df["Net Amount"].sum()))
+print("Total interest: {:.2f} CAD".format(interest_df["Net Amount"].sum()))
+print("Total dividends: {:.2f} CAD".format(dividents_df["Net Amount"].sum()))
+
+total = (
+    deposits_df["Net Amount"].sum()
+    + withdrawals_df["Net Amount"].sum()
+    + fees_and_rebates_df["Net Amount"].sum()
+    + interest_df["Net Amount"].sum()
+    + dividents_df["Net Amount"].sum()
+)
+# Format to 2 decimal places
+print("Total: {:.2f} CAD".format(total))
 
 
-# TODO: contributions and withdrawals
 # TODO: current portfolio value
-# TODO: dividends and distributions
-# TODO: fees and expenses
-# TODO: interest
