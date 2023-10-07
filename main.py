@@ -30,6 +30,7 @@ df = pd.merge_asof(
     direction="backward",
 )
 df["PriceInAccountCurrency"] = df["Price"]
+df.loc[df["Currency"] == "CAD", "PriceInCAD"] = df["Price"]
 df.loc[df["Currency"] == "USD", "PriceInCAD"] = (
     df["Price"] * df["FXUSDCAD"]
 )
