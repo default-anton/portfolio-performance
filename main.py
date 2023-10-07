@@ -35,6 +35,10 @@ df.loc[tsx_filter, "Symbol"] = df[tsx_filter]["Symbol"].map(lambda x: x + ".TO")
 
 rates_df = get_cadx_rates(start_date, end_date)
 
+deposits_df = df[df["Activity Type"] == "Deposits"]
+withdrawals_df = df[df["Activity Type"] == "Withdrawals"]
+fees_and_rebates_df = df[df["Activity Type"] == "Fees and Rebates"]
+interest_df = df[df["Activity Type"] == "Interest"]
 trades_df = df[df["Activity Type"] == "Trades"]
 dividents_df = df[df["Activity Type"] == "Dividends"]
 
@@ -64,6 +68,8 @@ dividents_df.loc[dividents_df["Currency"] == "USD", "PriceInCAD"] = (
     dividents_df["Price"] * dividents_df["FXUSDCAD"]
 )
 del dividents_df["Price"]
+
+import pdb; pdb.set_trace()
 
 
 # TODO: contributions and withdrawals
