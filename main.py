@@ -2,6 +2,7 @@ import sys
 from datetime import date
 
 import pandas as pd
+
 # https://pypi.org/project/yfinance/
 import yfinance as yf
 
@@ -16,7 +17,33 @@ df = pd.read_excel(sys.argv[1])
 df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
 df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
-start_date = df["Settlement Date"].min().isoformat()
+
+def set_etf_name_from_description(df, split_on):
+    mask = df.Description.str.contains(split_on)
+    df.loc[mask, "ETF Name"] = df.loc[mask, "Description"].str.split(split_on).str[0]
+
+
+set_etf_name_from_description(df, " WE ACTED AS AGENT")
+set_etf_name_from_description(df, " CASH DIV ON")
+set_etf_name_from_description(df, " DIST ON")
+
+mask_trades = df["Activity Type"] == "Trades"
+mask_valid_symbols = ~df["Symbol"].fillna("").str.contains(r"\d")
+etfs_df = (
+    df.loc[(mask_trades & mask_valid_symbols), ["Symbol", "ETF Name"]]
+    .drop_duplicates()
+    .reset_index(drop=True)
+)
+df = pd.merge(df, etfs_df, on="ETF Name", how="left", suffixes=("", "_valid"))
+df["Symbol"] = df["Symbol_valid"].fillna(df["Symbol"])
+df.drop(columns=["Symbol_valid", "ETF Name"], inplace=True)
+
+# TODO: Figure out what to do with weird numeric symbols
+# TODO: Allow filtering by account #
+# TODO: Verify that deposits and withdrawals Net Amount is in CAD
+# TODO: Verify that dividends Net Amount is in CAD
+
+start_date = df["Settlement Date"].min().date().isoformat()
 end_date = date.today().isoformat()
 
 rates_df = get_cadx_rates(start_date, end_date)
@@ -28,11 +55,21 @@ df = pd.merge_asof(
     right_on="date",
     direction="backward",
 )
+df.drop(columns=["date"], inplace=True)
 
 df.loc[df["Currency"] == "USD", "Price"] *= df["FXUSDCAD"]
-df.loc[df["Currency"] == "USD", "Net Amount"] *= df["FXUSDCAD"]
+df.loc[df["Currency"] == "USD", "Gross Amount"] *= df["FXUSDCAD"]
+df.loc[df["Currency"] == "USD", "Commission"] *= df["FXUSDCAD"]
 
-stocks = [s for s in df["Symbol"].dropna().unique() if not any(c.isdigit() for c in s)]
+
+import pdb
+
+pdb.set_trace()
+
+valid_symbols_filter = (~df["Symbol"].isna()) & (
+    ~df["Symbol"].fillna().str.contains("\d")
+)
+stocks = df[valid_symbols_filter]["Symbol"].unique()
 # Securities listed on TSX often have .TO suffix
 tsx_stocks = [s for s in stocks if s.endswith(".TO")]
 # Find TSX listed stocks without .TO suffix
@@ -49,24 +86,44 @@ withdrawals_df = df[df["Activity Type"] == "Withdrawals"]
 fees_and_rebates_df = df[df["Activity Type"] == "Fees and rebates"]
 interest_df = df[df["Activity Type"] == "Interest"]
 trades_df = df[df["Activity Type"] == "Trades"]
-dividents_df = df[df["Activity Type"] == "Dividends"]
-
+dividends_df = df[df["Activity Type"] == "Dividends"]
 
 print("Total deposits: {:.2f} CAD".format(deposits_df["Net Amount"].sum()))
 print("Total withdrawals: {:.2f} CAD".format(withdrawals_df["Net Amount"].sum()))
-print("Total fees and rebates: {:.2f} CAD".format(fees_and_rebates_df["Net Amount"].sum()))
-print("Total interest: {:.2f} CAD".format(interest_df["Net Amount"].sum()))
-print("Total dividends: {:.2f} CAD".format(dividents_df["Net Amount"].sum()))
-
-total = (
-    deposits_df["Net Amount"].sum()
-    + withdrawals_df["Net Amount"].sum()
-    + fees_and_rebates_df["Net Amount"].sum()
-    + interest_df["Net Amount"].sum()
-    + dividents_df["Net Amount"].sum()
+print(
+    "Total fees and rebates: {:.2f} CAD".format(fees_and_rebates_df["Net Amount"].sum())
 )
-# Format to 2 decimal places
-print("Total: {:.2f} CAD".format(total))
+print("Total interest: {:.2f} CAD".format(interest_df["Net Amount"].sum()))
+print("Total dividends: {:.2f} CAD".format(dividends_df["Net Amount"].sum()))
+
+print(f"Total!: {df['Net Amount'].sum():.2f} CAD")
 
 
-# TODO: current portfolio value
+# Function to get the current price of a stock
+def get_current_price(symbol):
+    stock = yf.Ticker(symbol)
+    return stock.info["regularMarketPrice"]
+
+
+# Get the current value of each stock in the portfolio
+current_values = []
+for symbol in trades_df["Symbol"].unique():
+    # Filter the DataFrame for each stock
+    stock_df = trades_df[trades_df["Symbol"] == symbol]
+    # Get the quantity of the stock
+    quantity = stock_df["Quantity"].sum()
+    if quantity == 0:
+        continue
+
+    stock = yf.Ticker(symbol)
+    current_value = quantity * stock.info["previousClose"]
+
+    if stock.info["currency"] == "USD":
+        current_value *= rates_df["FXUSDCAD"].iloc[-1]
+
+    current_values.append(current_value)
+
+portfolio_value = sum(current_values)
+dividends_received = dividends_df["Net Amount"].sum()
+fees_paid = fees_and_rebates_df["Net Amount"].sum()
+initial_investment = deposits_df["Net Amount"].sum()
