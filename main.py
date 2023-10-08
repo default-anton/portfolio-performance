@@ -45,7 +45,6 @@ def fix_etf_symbols(df):
 df = fix_etf_symbols(df)
 
 # TODO: Allow filtering by account #
-# TODO: Verify that deposits and withdrawals Net Amount is in CAD
 # TODO: Verify that dividends Net Amount is in CAD
 
 start_date = df["Settlement Date"].min().date().isoformat()
