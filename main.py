@@ -23,22 +23,27 @@ def set_etf_name_from_description(df, split_on):
     df.loc[mask, "ETF Name"] = df.loc[mask, "Description"].str.split(split_on).str[0]
 
 
-set_etf_name_from_description(df, " WE ACTED AS AGENT")
-set_etf_name_from_description(df, " CASH DIV ON")
-set_etf_name_from_description(df, " DIST ON")
+for split_on in [" WE ACTED AS AGENT", " CASH DIV ON", " DIST ON"]:
+    set_etf_name_from_description(df, split_on)
 
-mask_trades = df["Activity Type"] == "Trades"
-mask_valid_symbols = ~df["Symbol"].fillna("").str.contains(r"\d")
-etfs_df = (
-    df.loc[(mask_trades & mask_valid_symbols), ["Symbol", "ETF Name"]]
-    .drop_duplicates()
-    .reset_index(drop=True)
-)
-df = pd.merge(df, etfs_df, on="ETF Name", how="left", suffixes=("", "_valid"))
-df["Symbol"] = df["Symbol_valid"].fillna(df["Symbol"])
-df.drop(columns=["Symbol_valid", "ETF Name"], inplace=True)
 
-# TODO: Figure out what to do with weird numeric symbols
+def fix_etf_symbols(df):
+    trades_mask = df["Activity Type"] == "Trades"
+    valid_symbols_mask = ~df["Symbol"].fillna("").str.contains(r"\d")
+    etfs_df = (
+        df.loc[(trades_mask & valid_symbols_mask), ["Symbol", "ETF Name"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    df = pd.merge(df, etfs_df, on="ETF Name", how="left", suffixes=(None, "_valid"))
+    df["Symbol"] = df["Symbol_valid"].fillna(df["Symbol"])
+    df.drop(columns=["Symbol_valid"], inplace=True)
+
+    return df
+
+
+df = fix_etf_symbols(df)
+
 # TODO: Allow filtering by account #
 # TODO: Verify that deposits and withdrawals Net Amount is in CAD
 # TODO: Verify that dividends Net Amount is in CAD
@@ -57,14 +62,13 @@ df = pd.merge_asof(
 )
 df.drop(columns=["date"], inplace=True)
 
-df.loc[df["Currency"] == "USD", "Price"] *= df["FXUSDCAD"]
-df.loc[df["Currency"] == "USD", "Gross Amount"] *= df["FXUSDCAD"]
-df.loc[df["Currency"] == "USD", "Commission"] *= df["FXUSDCAD"]
+usd_mask = df["Currency"] == "USD"
+deposits_and_withdrawals_mask = (usd_mask) & (
+    df["Activity Type"].isin(["Deposits", "Withdrawals"])
+)
 
-
-import pdb
-
-pdb.set_trace()
+df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]] = df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]].multiply(df.loc[usd_mask, "FXUSDCAD"], axis="index")
+df.loc[deposits_and_withdrawals_mask, "Net Amount"] *= df.loc[deposits_and_withdrawals_mask, "FXUSDCAD"]
 
 valid_symbols_filter = (~df["Symbol"].isna()) & (
     ~df["Symbol"].fillna().str.contains("\d")
