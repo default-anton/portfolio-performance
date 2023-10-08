@@ -62,12 +62,16 @@ df = pd.merge_asof(
 df.drop(columns=["date"], inplace=True)
 
 usd_mask = df["Currency"] == "USD"
-deposits_and_withdrawals_mask = (usd_mask) & (
+usd_deposits_and_withdrawals_mask = usd_mask & (
     df["Activity Type"].isin(["Deposits", "Withdrawals"])
 )
 
-df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]] = df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]].multiply(df.loc[usd_mask, "FXUSDCAD"], axis="index")
-df.loc[deposits_and_withdrawals_mask, "Net Amount"] *= df.loc[deposits_and_withdrawals_mask, "FXUSDCAD"]
+df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]] = df.loc[
+    usd_mask, ["Price", "Gross Amount", "Commission"]
+].multiply(df.loc[usd_mask, "FXUSDCAD"], axis="index")
+df.loc[usd_deposits_and_withdrawals_mask, "Net Amount"] *= df.loc[
+    usd_deposits_and_withdrawals_mask, "FXUSDCAD"
+]
 
 valid_symbols_filter = (~df["Symbol"].isna()) & (
     ~df["Symbol"].fillna().str.contains("\d")
