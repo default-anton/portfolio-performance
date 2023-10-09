@@ -27,6 +27,8 @@ def get_cadx_rates(start_date: str, end_date: str):
                 .sort_values("date")
             )
 
+        rates_df.to_csv(DB_PATH, index=False)
+
         return rates_df
     except FileNotFoundError:
         rates_df = fetch_cadx_rates(start_date, end_date)
