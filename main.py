@@ -73,26 +73,6 @@ df.loc[usd_deposits_and_withdrawals_mask, "Net Amount"] *= df.loc[
     usd_deposits_and_withdrawals_mask, "FXUSDCAD"
 ]
 
-# TODO: simplify this
-valid_symbols_filter = (~df["Symbol"].isna()) & (
-    ~df["Symbol"].fillna().str.contains("\d")
-)
-stocks = df[valid_symbols_filter]["Symbol"].unique()
-# Securities listed on TSX often have .TO suffix
-tsx_stocks = [s for s in stocks if s.endswith(".TO")]
-# Find TSX listed stocks without .TO suffix
-stocks = list(set(stocks) - set([s.removesuffix(".TO") for s in tsx_stocks]))
-# Replace stocks without .TO suffix with stocks with .TO suffix
-df["Symbol"] = df["Symbol"].replace(
-    [s.removesuffix(".TO") for s in tsx_stocks], tsx_stocks
-)
-tsx_filter = df["Symbol"].map(lambda x: str(x) + ".TO").isin(tsx_stocks)
-df.loc[tsx_filter, "Symbol"] = df[tsx_filter]["Symbol"].map(lambda x: x + ".TO")
-
-
-
-
-
 deposits_df = df[df["Activity Type"] == "Deposits"]
 withdrawals_df = df[df["Activity Type"] == "Withdrawals"]
 fees_and_rebates_df = df[df["Activity Type"] == "Fees and rebates"]
