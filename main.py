@@ -5,6 +5,7 @@ import pandas as pd
 
 # https://pypi.org/project/yfinance/
 import yfinance as yf
+from pandas.compat import os
 
 from bank_of_canada import get_cadx_rates
 
@@ -12,8 +13,14 @@ if len(sys.argv) < 2:
     print("Please provide the path to the data file")
     exit(1)
 
+account_number = os.getenv("ACCOUNT_NUMBER")
 
 df = pd.read_excel(sys.argv[1])
+
+if account_number:
+    print(f"Filtering by account number: {account_number}")
+    df = df[df["Account #"] == int(account_number)]
+
 df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
 df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
@@ -44,9 +51,6 @@ def fix_etf_symbols(df):
 
 df = fix_etf_symbols(df)
 
-# TODO: Allow filtering by account #
-# TODO: Verify that dividends Net Amount is in CAD
-
 start_date = df["Settlement Date"].min().date().isoformat()
 end_date = date.today().isoformat()
 
@@ -62,16 +66,17 @@ df = pd.merge_asof(
 df.drop(columns=["date"], inplace=True)
 
 usd_mask = df["Currency"] == "USD"
-usd_deposits_and_withdrawals_mask = usd_mask & (
-    df["Activity Type"].isin(["Deposits", "Withdrawals"])
-)
-
 df.loc[usd_mask, ["Price", "Gross Amount", "Commission"]] = df.loc[
     usd_mask, ["Price", "Gross Amount", "Commission"]
 ].multiply(df.loc[usd_mask, "FXUSDCAD"], axis="index")
-df.loc[usd_deposits_and_withdrawals_mask, "Net Amount"] *= df.loc[
-    usd_deposits_and_withdrawals_mask, "FXUSDCAD"
-]
+
+deposits_and_withdrawals_mask = df["Activity Type"].isin(["Deposits", "Withdrawals"])
+dividends_mask = df["Activity Type"] == "Dividends"
+interest_mask = df["Activity Type"] == "Interest"
+mask = usd_mask & (deposits_and_withdrawals_mask | dividends_mask | interest_mask)
+df.loc[mask, "Net Amount"] = df.loc[mask, "Net Amount"].multiply(
+    df.loc[mask, "FXUSDCAD"], axis="index"
+)
 
 deposits_df = df[df["Activity Type"] == "Deposits"]
 withdrawals_df = df[df["Activity Type"] == "Withdrawals"]
@@ -89,6 +94,7 @@ print("Total interest: {:.2f} CAD".format(interest_df["Net Amount"].sum()))
 print("Total dividends: {:.2f} CAD".format(dividends_df["Net Amount"].sum()))
 
 print(f"Total!: {df['Net Amount'].sum():.2f} CAD")
+exit(0)
 
 
 # Function to get the current price of a stock
