@@ -1,3 +1,3 @@
 .PHONY: dev
 dev:
-		@uvicorn server:app --reload
+		@uvicorn main:app --reload
