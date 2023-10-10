@@ -1,0 +1,29 @@
+[flake8]
+# Base flake8 configuration:
+
+# E = all errors
+# F = all from flake8-future-import
+# W = all warnings
+# B = all bugs (from flake8-bugbear)
+# B9 = all opinionated checks (from flake8-bugbear)
+# C = all complexity checks
+# D = all docstring checks (from flake8-docstrings)
+# T = all todo checks (from flake8-todo)
+
+# Choose which checks to enable:
+select = E,F,W,B,C,D,T,B9
+
+# Disable some pep8 checks:
+# W503: line break occurred before a binary operator
+# E203: whitespace before ':'
+ignore = W503,E203
+
+# The GitHub editor is 127 chars wide
+max-line-length = 127
+
+# Excluding some directories:
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist
