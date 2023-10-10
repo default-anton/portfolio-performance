@@ -1,0 +1,6 @@
+pandas==2.1.1
+requests==2.31.0
+yfinance==0.2.31
+fastapi==0.103.2
+uvicorn==0.23.2
+Jinja2==3.1.2
