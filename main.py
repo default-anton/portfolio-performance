@@ -1,4 +1,3 @@
-import pandas as pd
 from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -30,5 +29,9 @@ async def report(request: Request, file: UploadFile | None = None):
 
     return templates.TemplateResponse(
         "report.html",
-        {"request": request, "title": "Home", "activity_report": activity_report},
+        {
+            "request": request,
+            "title": "Portfolio Performance",
+            "activity_report": activity_report,
+        },
     )
