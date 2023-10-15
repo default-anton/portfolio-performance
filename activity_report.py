@@ -30,30 +30,10 @@ def load_activity_report(
     df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
     df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
-    def set_etf_name_from_description(df, split_on):
-        mask = df.Description.str.contains(split_on)
-        df.loc[mask, "ETF Name"] = (
-            df.loc[mask, "Description"].str.split(split_on).str[0]
-        )
-
     for split_on in [" WE ACTED AS AGENT", " CASH DIV ON", " DIST ON"]:
-        set_etf_name_from_description(df, split_on)
+        _set_etf_name_from_description(df, split_on)
 
-    def fix_etf_symbols(df):
-        trades_mask = df["Activity Type"] == "Trades"
-        valid_symbols_mask = ~df["Symbol"].fillna("").str.contains(r"\d")
-        etfs_df = (
-            df.loc[(trades_mask & valid_symbols_mask), ["Symbol", "ETF Name"]]
-            .drop_duplicates()
-            .reset_index(drop=True)
-        )
-        df = pd.merge(df, etfs_df, on="ETF Name", how="left", suffixes=(None, "_valid"))
-        df["Symbol"] = df["Symbol_valid"].fillna(df["Symbol"])
-        df.drop(columns=["Symbol_valid"], inplace=True)
-
-        return df
-
-    df = fix_etf_symbols(df)
+    df = _fix_etf_symbols(df)
 
     start_date = df["Settlement Date"].min().date().isoformat()
     end_date = date.today().isoformat()
@@ -96,14 +76,34 @@ def load_activity_report(
     )
 
 
+def _set_etf_name_from_description(df: pd.DataFrame, split_on: str) -> None:
+    mask = df.Description.str.contains(split_on)
+    df.loc[mask, "ETF Name"] = df.loc[mask, "Description"].str.split(split_on).str[0]
+
+
+def _fix_etf_symbols(df: pd.DataFrame) -> pd.DataFrame:
+    trades_mask = df["Activity Type"] == "Trades"
+    valid_symbols_mask = ~df["Symbol"].fillna("").str.contains(r"\d")
+    etfs_df = (
+        df.loc[(trades_mask & valid_symbols_mask), ["Symbol", "ETF Name"]]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+    df = pd.merge(df, etfs_df, on="ETF Name", how="left", suffixes=(None, "_valid"))
+    df["Symbol"] = df["Symbol_valid"].fillna(df["Symbol"])
+    df.drop(columns=["Symbol_valid"], inplace=True)
+
+    return df
+
+
 # Function to get the current price of a stock
-def get_current_price(symbol):
+def get_current_price(symbol: str) -> float:
     stock = yf.Ticker(symbol)
     return stock.info["regularMarketPrice"]
 
 
 # TODO: Return df with current stock prices
-def todo_portfolio_value(trades_df: pd.DataFrame, rates_df: pd.DataFrame):
+def todo_portfolio_value(trades_df: pd.DataFrame, rates_df: pd.DataFrame) -> float:
     current_values = []
     for symbol in trades_df["Symbol"].unique():
         # Filter the DataFrame for each stock
