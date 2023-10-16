@@ -1,10 +1,15 @@
+import locale
+
 from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import jinja_filters
 from activity_report import ActivityReport, load_activity_report
 from middlewares.csrf_middleware import CSRFMiddleware
+
+locale.setlocale(locale.LC_ALL, "en_CA.UTF-8")
 
 app = FastAPI()
 app.add_middleware(CSRFMiddleware)
@@ -13,6 +18,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 templates = Jinja2Templates(directory="templates")
+templates.env.filters["currency"] = jinja_filters.currency
 
 
 @app.get("/", response_class=HTMLResponse)

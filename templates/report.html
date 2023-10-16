@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-Count: {{ activity_report.all.shape[0] }}
+Return on Investment (ROI): Current Value / Initial Investment - 1
+{{ activity_report.current_value(1.3641)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
+(activity_report.roi(1.3641)*100)|round(2) }}%
 {% endblock %}

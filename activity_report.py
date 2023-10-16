@@ -47,15 +47,11 @@ class ActivityReport:
 
         self.all.to_csv(file_name, index=False)
 
-    def _get_current_price(self, symbol: str) -> float:
-        return yf.Ticker(symbol).info["regularMarketPrice"]
-
-    def portfolio_value(self, trades_df: pd.DataFrame, rates_df: pd.DataFrame) -> float:
-        # TODO: Implement this
+    def current_value(self, fx_usdcad: float) -> float:
         current_values = []
-        for symbol in trades_df["Symbol"].unique():
+        for symbol in self.trades["Symbol"].unique():
             # Filter the DataFrame for each stock
-            stock_df = trades_df[trades_df["Symbol"] == symbol]
+            stock_df = self.trades[self.trades["Symbol"] == symbol]
             # Get the quantity of the stock
             quantity = stock_df["Quantity"].sum()
             if quantity == 0:
@@ -65,11 +61,20 @@ class ActivityReport:
             current_value = quantity * stock.info["previousClose"]
 
             if stock.info["currency"] == "USD":
-                current_value *= rates_df["FXUSDCAD"].iloc[-1]
+                current_value *= fx_usdcad
 
             current_values.append(current_value)
 
         return sum(current_values)
+
+    def initial_investment(self) -> float:
+        return self.deposits["Net Amount"].sum() + self.withdrawals["Net Amount"].sum()
+
+    def roi(self, fx_usdcad: float) -> float:
+        return self.current_value(fx_usdcad) / self.initial_investment() - 1
+
+    def _get_last_price(self, symbol: str) -> float:
+        return yf.Ticker(symbol).info["previousClose"]
 
     @property
     def id(self) -> str:
