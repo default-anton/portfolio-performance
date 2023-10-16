@@ -57,6 +57,7 @@ class ActivityReport:
             if quantity == 0:
                 continue
 
+            # TODO: Cache this
             stock = yf.Ticker(symbol)
             current_value = quantity * stock.info["previousClose"]
 
@@ -72,9 +73,6 @@ class ActivityReport:
 
     def roi(self, fx_usdcad: float) -> float:
         return self.current_value(fx_usdcad) / self.initial_investment() - 1
-
-    def _get_last_price(self, symbol: str) -> float:
-        return yf.Ticker(symbol).info["previousClose"]
 
     @property
     def id(self) -> str:
