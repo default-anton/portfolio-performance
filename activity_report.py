@@ -19,9 +19,9 @@ class ActivityReport:
 
 
 def load_activity_report(
-    path: str, account_number: str | None = None
+    file: bytes, account_number: str | None = None
 ) -> ActivityReport:
-    df = pd.read_excel(path)
+    df = pd.read_excel(file)
 
     if account_number:
         print(f"Filtering by account number: {account_number}")
