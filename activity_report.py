@@ -1,5 +1,7 @@
+import hashlib
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import cast
 
 import pandas as pd
@@ -10,12 +12,68 @@ from bank_of_canada import get_cadx_rates
 
 @dataclass
 class ActivityReport:
+    all: pd.DataFrame
     deposits: pd.DataFrame
     withdrawals: pd.DataFrame
     fees_and_rebates: pd.DataFrame
     interest: pd.DataFrame
     trades: pd.DataFrame
     dividends: pd.DataFrame
+
+    @classmethod
+    def load(cls, id: str) -> "ActivityReport":
+        df = pd.read_csv(cls._file_name(id))
+
+        return ActivityReport(
+            all=df,
+            deposits=cast(pd.DataFrame, df[df["Activity Type"] == "Deposits"]),
+            withdrawals=cast(pd.DataFrame, df[df["Activity Type"] == "Withdrawals"]),
+            fees_and_rebates=cast(
+                pd.DataFrame, df[df["Activity Type"] == "Fees and rebates"]
+            ),
+            interest=cast(pd.DataFrame, df[df["Activity Type"] == "Interest"]),
+            trades=cast(pd.DataFrame, df[df["Activity Type"] == "Trades"]),
+            dividends=cast(pd.DataFrame, df[df["Activity Type"] == "Dividends"]),
+        )
+
+    @staticmethod
+    def _file_name(id: str) -> str:
+        return f"data/activity_report_{id}.xlsx"
+
+    def save(self) -> None:
+        file_name = self._file_name(self.id)
+        if Path(file_name).exists():
+            return
+
+        self.all.to_csv(file_name, index=False)
+
+    def _get_current_price(self, symbol: str) -> float:
+        return yf.Ticker(symbol).info["regularMarketPrice"]
+
+    def portfolio_value(self, trades_df: pd.DataFrame, rates_df: pd.DataFrame) -> float:
+        # TODO: Implement this
+        current_values = []
+        for symbol in trades_df["Symbol"].unique():
+            # Filter the DataFrame for each stock
+            stock_df = trades_df[trades_df["Symbol"] == symbol]
+            # Get the quantity of the stock
+            quantity = stock_df["Quantity"].sum()
+            if quantity == 0:
+                continue
+
+            stock = yf.Ticker(symbol)
+            current_value = quantity * stock.info["previousClose"]
+
+            if stock.info["currency"] == "USD":
+                current_value *= rates_df["FXUSDCAD"].iloc[-1]
+
+            current_values.append(current_value)
+
+        return sum(current_values)
+
+    @property
+    def id(self) -> str:
+        return hashlib.sha256(self.all.to_csv().encode()).hexdigest()
 
 
 def load_activity_report(
@@ -31,9 +89,9 @@ def load_activity_report(
     df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
     for split_on in [" WE ACTED AS AGENT", " CASH DIV ON", " DIST ON"]:
-        _set_etf_name_from_description(df, split_on)
+        _set_etf_name_from_description(cast(pd.DataFrame, df), split_on)
 
-    df = _fix_etf_symbols(df)
+    df = _fix_etf_symbols(cast(pd.DataFrame, df))
 
     start_date = df["Settlement Date"].min().date().isoformat()
     end_date = date.today().isoformat()
@@ -65,6 +123,7 @@ def load_activity_report(
     )
 
     return ActivityReport(
+        all=df,
         deposits=cast(pd.DataFrame, df[df["Activity Type"] == "Deposits"]),
         withdrawals=cast(pd.DataFrame, df[df["Activity Type"] == "Withdrawals"]),
         fees_and_rebates=cast(
@@ -94,31 +153,3 @@ def _fix_etf_symbols(df: pd.DataFrame) -> pd.DataFrame:
     df.drop(columns=["Symbol_valid"], inplace=True)
 
     return df
-
-
-# Function to get the current price of a stock
-def get_current_price(symbol: str) -> float:
-    stock = yf.Ticker(symbol)
-    return stock.info["regularMarketPrice"]
-
-
-# TODO: Return df with current stock prices
-def todo_portfolio_value(trades_df: pd.DataFrame, rates_df: pd.DataFrame) -> float:
-    current_values = []
-    for symbol in trades_df["Symbol"].unique():
-        # Filter the DataFrame for each stock
-        stock_df = trades_df[trades_df["Symbol"] == symbol]
-        # Get the quantity of the stock
-        quantity = stock_df["Quantity"].sum()
-        if quantity == 0:
-            continue
-
-        stock = yf.Ticker(symbol)
-        current_value = quantity * stock.info["previousClose"]
-
-        if stock.info["currency"] == "USD":
-            current_value *= rates_df["FXUSDCAD"].iloc[-1]
-
-        current_values.append(current_value)
-
-    return sum(current_values)

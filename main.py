@@ -3,8 +3,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from middlewares.csrf_middleware import CSRFMiddleware
 from activity_report import ActivityReport, load_activity_report
+from middlewares.csrf_middleware import CSRFMiddleware
 
 app = FastAPI()
 app.add_middleware(CSRFMiddleware)
@@ -24,7 +24,7 @@ async def index(request: Request):
 
 
 @app.post("/report", response_class=HTMLResponse)
-def report(request: Request, file: UploadFile | None = None):
+def create_report(request: Request, file: UploadFile | None = None):
     activity_report: ActivityReport | None = None
 
     if file is None:
@@ -51,6 +51,8 @@ def report(request: Request, file: UploadFile | None = None):
             headers={"HX-Retarget": "#form .error", "HX-Reswap": "innerHTML"},
         )
 
+    activity_report.save()
+
     return templates.TemplateResponse(
         "report.html",
         {
@@ -58,5 +60,25 @@ def report(request: Request, file: UploadFile | None = None):
             "title": "Portfolio Performance",
             "activity_report": activity_report,
         },
-        headers={"HX-Push-URL": "/report"},
+        headers={"HX-Push-URL": f"/report/{activity_report.id}"},
+    )
+
+
+@app.get("/report/{id}", response_class=HTMLResponse)
+def get_report(request: Request, id: str):
+    try:
+        activity_report = ActivityReport.load(id)
+    except (OSError, ValueError):
+        return HTMLResponse(
+            content="Report not found.",
+            status_code=404,
+        )
+
+    return templates.TemplateResponse(
+        "report.html",
+        {
+            "request": request,
+            "title": "Portfolio Performance",
+            "activity_report": activity_report,
+        },
     )
