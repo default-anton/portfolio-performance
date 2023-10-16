@@ -3,9 +3,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from middlewares.csrf_middleware import CSRFMiddleware
 from activity_report import ActivityReport, load_activity_report
 
 app = FastAPI()
+app.add_middleware(CSRFMiddleware)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
