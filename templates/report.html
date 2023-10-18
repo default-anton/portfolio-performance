@@ -1,7 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<pre>
 Return on Investment (ROI): Current Value / Initial Investment - 1
 {{ activity_report.current_value(fx_usdcad)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
 (activity_report.roi(fx_usdcad)*100)|round(2) }}%
+
+Deposits: {{ activity_report.deposits_sum()|currency }}
+Withdrawals: {{ activity_report.withdrawals_sum()|currency }}
+Fees and Rebates: {{ activity_report.fees_and_rebates_sum()|currency }}
+Interest: {{ activity_report.interest_sum()|currency }}
+Trades: {{ activity_report.trades_sum()|currency }}
+Dividends: {{ activity_report.dividends_sum()|currency }}
+</pre>
 {% endblock %}

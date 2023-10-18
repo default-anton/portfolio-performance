@@ -73,6 +73,24 @@ class ActivityReport:
     def roi(self, fx_usdcad: float) -> float:
         return self.current_value(fx_usdcad) / self.initial_investment() - 1
 
+    def deposits_sum(self) -> float:
+        return self.deposits["Net Amount"].sum()
+
+    def withdrawals_sum(self) -> float:
+        return self.withdrawals["Net Amount"].sum()
+
+    def fees_and_rebates_sum(self) -> float:
+        return self.fees_and_rebates["Net Amount"].sum()
+
+    def interest_sum(self) -> float:
+        return self.interest["Net Amount"].sum()
+
+    def trades_sum(self) -> float:
+        return self.trades["Net Amount"].sum()
+
+    def dividends_sum(self) -> float:
+        return self.dividends["Net Amount"].sum()
+
     @property
     def id(self) -> str:
         return hashlib.sha256(self.all.to_csv().encode()).hexdigest()
