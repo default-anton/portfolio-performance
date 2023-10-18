@@ -59,12 +59,15 @@ def create_report(request: Request, file: UploadFile | None = None):
 
     activity_report.save()
 
+    # TODO: fetch the latest BoC USD/CAD rate
+
     return templates.TemplateResponse(
         "report.html",
         {
             "request": request,
             "title": "Portfolio Performance",
             "activity_report": activity_report,
+            "fx_usdcad": 1.36,
         },
         headers={"HX-Push-URL": f"/report/{activity_report.id}"},
     )
@@ -86,5 +89,6 @@ def get_report(request: Request, id: str):
             "request": request,
             "title": "Portfolio Performance",
             "activity_report": activity_report,
+            "fx_usdcad": 1.36,
         },
     )

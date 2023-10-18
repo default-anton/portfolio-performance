@@ -2,6 +2,6 @@
 
 {% block content %}
 Return on Investment (ROI): Current Value / Initial Investment - 1
-{{ activity_report.current_value(1.3641)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
-(activity_report.roi(1.3641)*100)|round(2) }}%
+{{ activity_report.current_value(fx_usdcad)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
+(activity_report.roi(fx_usdcad)*100)|round(2) }}%
 {% endblock %}
