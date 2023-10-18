@@ -3,6 +3,7 @@ import io
 import pandas as pd
 import requests
 
+# TODO: use Pathlib.Path
 DB_PATH = "data/cadx.csv"
 
 
