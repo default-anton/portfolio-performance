@@ -8,6 +8,7 @@ import pandas as pd
 import yfinance as yf
 
 from bank_of_canada import get_cadx_rates
+from ticker import Ticker
 
 
 @dataclass
@@ -57,11 +58,10 @@ class ActivityReport:
             if quantity == 0:
                 continue
 
-            # TODO: Cache this
-            stock = yf.Ticker(symbol)
-            current_value = quantity * stock.info["previousClose"]
+            ticker = Ticker.load(symbol)
+            current_value = quantity * ticker.price
 
-            if stock.info["currency"] == "USD":
+            if ticker.currency == "USD":
                 current_value *= fx_usdcad
 
             current_values.append(current_value)
