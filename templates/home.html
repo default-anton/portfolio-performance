@@ -1,18 +1,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+
+<h1>Upload activity report</h1>
+
+<div class="">
   <form id="form" hx-post="/report" hx-target="body" hx-swap="outerHTML" hx-encoding="multipart/form-data">
     <fieldset>
       <legend>Select your report</legend>
-      <div class="form-group">
+      <div class="">
         <label for="file">.xlsx file:</label>
         <input type="file" name="file" id="file" accept=".xlsx" required>
-        <div class="error">{% if error %}{{ error }}{% endif %}</div>
+        <div class="">{% if error %}{{ error }}{% endif %}</div>
       </div>
     </fieldset>
 
-    <div class="form-group">
+    <div class="">
       <button type="submit">Upload</button>
     </div>
 

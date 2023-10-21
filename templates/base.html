@@ -14,9 +14,6 @@
     {% endblock %}
 </head>
   <body hx-headers='{"csrftoken": "{{ request.state.csrftoken }}"}'>
-{% block header %}
-{% include 'header.html' %}
-{% endblock %}
 
 {% block content %}
 {% endblock %}

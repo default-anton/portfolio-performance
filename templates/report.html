@@ -2,6 +2,14 @@
 
 {% block content %}
 
+<nav>
+  <ul>
+    <li><a href="{{ url_for('home') }}">Home</a></li>
+  </ul>
+</nav>
+
+<h1>ETF Portfolio Performance</h1>
+
 <pre>
 Return on Investment (ROI): Current Value / Initial Investment - 1
 {{ activity_report.current_value(boc_usdcad)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
