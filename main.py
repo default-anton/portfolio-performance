@@ -1,6 +1,7 @@
 import locale
 
 from fastapi import FastAPI, Request, UploadFile
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -15,6 +16,7 @@ locale.setlocale(locale.LC_ALL, "en_CA.UTF-8")
 
 app = FastAPI()
 app.add_middleware(CSRFMiddleware)
+app.add_middleware(GZipMiddleware)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
