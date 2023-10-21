@@ -4,6 +4,8 @@ from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from bank_of_canada import get_cadx_rate
+from datetime import date
 
 import jinja_filters
 from activity_report import ActivityReport, load_activity_report
@@ -59,7 +61,7 @@ def create_report(request: Request, file: UploadFile | None = None):
 
     activity_report.save()
 
-    # TODO: fetch the latest BoC USD/CAD rate
+    boc_usdcad = get_cadx_rate(date.today())
 
     return templates.TemplateResponse(
         "report.html",
@@ -67,7 +69,7 @@ def create_report(request: Request, file: UploadFile | None = None):
             "request": request,
             "title": "Portfolio Performance",
             "activity_report": activity_report,
-            "fx_usdcad": 1.36,
+            "boc_usdcad": boc_usdcad,
         },
         headers={"HX-Push-URL": f"/report/{activity_report.id}"},
     )
@@ -83,12 +85,14 @@ def get_report(request: Request, id: str):
             status_code=404,
         )
 
+    boc_usdcad = get_cadx_rate(date.today())
+
     return templates.TemplateResponse(
         "report.html",
         {
             "request": request,
             "title": "Portfolio Performance",
             "activity_report": activity_report,
-            "fx_usdcad": 1.36,
+            "boc_usdcad": boc_usdcad,
         },
     )

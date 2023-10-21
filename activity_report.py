@@ -47,7 +47,7 @@ class ActivityReport:
 
         self.all.to_csv(file_path, index=False)
 
-    def current_value(self, fx_usdcad: float) -> float:
+    def current_value(self, boc_usdcad: float) -> float:
         current_values = []
         for symbol in self.trades["Symbol"].unique():
             # Filter the DataFrame for each stock
@@ -61,7 +61,7 @@ class ActivityReport:
             current_value = quantity * ticker.price
 
             if ticker.currency == "USD":
-                current_value *= fx_usdcad
+                current_value *= boc_usdcad
 
             current_values.append(current_value)
 
@@ -70,8 +70,8 @@ class ActivityReport:
     def initial_investment(self) -> float:
         return self.deposits["Net Amount"].sum() + self.withdrawals["Net Amount"].sum()
 
-    def roi(self, fx_usdcad: float) -> float:
-        return self.current_value(fx_usdcad) / self.initial_investment() - 1
+    def roi(self, boc_usdcad: float) -> float:
+        return self.current_value(boc_usdcad) / self.initial_investment() - 1
 
     def deposits_sum(self) -> float:
         return self.deposits["Net Amount"].sum()
@@ -113,8 +113,8 @@ def load_activity_report(
 
     df = _fix_etf_symbols(cast(pd.DataFrame, df))
 
-    start_date = df["Settlement Date"].min().date().isoformat()
-    end_date = date.today().isoformat()
+    start_date = df["Settlement Date"].min().date()
+    end_date = date.today()
 
     rates_df = get_cadx_rates(start_date, end_date)
     # Merge rates with transactions
