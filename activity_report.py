@@ -22,7 +22,7 @@ class ActivityReport:
 
     @classmethod
     def load(cls, id: str) -> "ActivityReport":
-        df = pd.read_csv(cls._file_name(id))
+        df = pd.read_csv(cls._file_path(id))
 
         return ActivityReport(
             all=df,
@@ -37,15 +37,15 @@ class ActivityReport:
         )
 
     @staticmethod
-    def _file_name(id: str) -> str:
-        return f"data/activity_report_{id}.xlsx"
+    def _file_path(id: str) -> Path:
+        return Path("data") / f"activity_report_{id}.xlsx"
 
     def save(self) -> None:
-        file_name = self._file_name(self.id)
-        if Path(file_name).exists():
+        file_path = self._file_path(self.id)
+        if file_path.exists():
             return
 
-        self.all.to_csv(file_name, index=False)
+        self.all.to_csv(file_path, index=False)
 
     def current_value(self, fx_usdcad: float) -> float:
         current_values = []

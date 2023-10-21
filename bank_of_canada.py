@@ -1,10 +1,10 @@
 import io
+from pathlib import Path
 
 import pandas as pd
 import requests
 
-# TODO: use Pathlib.Path
-DB_PATH = "data/cadx.csv"
+DB_PATH = Path("data") / "cadx.csv"
 
 
 def get_cadx_rates(start_date: str, end_date: str):

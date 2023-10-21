@@ -16,9 +16,7 @@ class Ticker:
         if day is None:
             day = date.today()
 
-        cache_key = Path("data").joinpath(
-            f"ticker-{day.strftime('%Y-%m-%d')}-{symbol}.csv"
-        )
+        cache_key = Path("data") / f"ticker-{day.strftime('%Y-%m-%d')}-{symbol}.csv"
         if cache_key.exists():
             return cls.load_from_cache(cache_key)
 
