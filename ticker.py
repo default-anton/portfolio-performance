@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+import pandas as pd
 import yfinance as yf
 
 
@@ -29,6 +30,52 @@ class Ticker:
         ticker.save_to_cache(cache_key)
 
         return ticker
+
+    @staticmethod
+    def load_history(start: date, end: date, symbol: str) -> pd.DataFrame:
+        cache_key = Path("data") / f"{symbol}-history.csv"
+        if cache_key.exists():
+            history_df = pd.read_csv(cache_key)
+            history_df["Date"] = pd.to_datetime(history_df["Date"])
+            history_df.set_index("Date", inplace=True)
+            history_df = history_df.tz_localize(None)
+
+            if history_df.index.max() < pd.to_datetime(end):
+                delta_df = yf.Ticker(symbol).history(
+                    interval="1d",
+                    start=(history_df.index.max() + pd.Timedelta(days=1))
+                    .to_pydatetime()
+                    .date(),
+                    end=end,
+                )
+                delta_df = delta_df.tz_localize(None)
+                history_df = pd.concat([history_df, delta_df])
+
+            if history_df.index.min() > pd.to_datetime(start):
+                delta_df = yf.Ticker(symbol).history(
+                    interval="1d",
+                    start=start,
+                    end=(history_df.index.min() - pd.Timedelta(days=1))
+                    .to_pydatetime()
+                    .date(),
+                )
+                delta_df = delta_df.tz_localize(None)
+                history_df = pd.concat([delta_df, history_df])
+
+            history_df = history_df.drop_duplicates().sort_values("Date")
+            history_df.to_csv(cache_key)
+
+            return history_df
+
+        history_df = yf.Ticker(symbol).history(
+            interval="1d",
+            start=start,
+            end=end,
+        )
+        history_df = history_df.tz_localize(None)
+        history_df.to_csv(cache_key)
+
+        return history_df
 
     @classmethod
     def load_from_cache(cls, cache_key: Path) -> "Ticker":

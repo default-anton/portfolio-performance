@@ -41,7 +41,7 @@ def get_cadx_rates(start_date: date, end_date: date):
 
 
 def fetch_cadx_rates(start_date: date, end_date: date):
-    path = f"https://www.bankofcanada.ca/valet/observations/FXUSDCAD/csv?start_date={start_date.isoformat()}&end_date={end_date.isoformat()}"
+    path = f"https://www.bankofcanada.ca/valet/observations/FXUSDCAD/csv?start_date={start_date}&end_date={end_date}"
     csv = requests.get(path).content.decode("utf-8")
     csv = csv[csv.find('"date"'):]
 

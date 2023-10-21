@@ -23,6 +23,8 @@ class ActivityReport:
     @classmethod
     def load(cls, id: str) -> "ActivityReport":
         df = pd.read_csv(cls._file_path(id))
+        df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
+        df["Transaction Date"] = pd.to_datetime(df["Transaction Date"])
 
         return ActivityReport(
             all=df,
@@ -91,6 +93,38 @@ class ActivityReport:
     def dividends_sum(self) -> float:
         return self.dividends["Net Amount"].sum()
 
+    def etf_growth(self):
+        symbols = self.trades["Symbol"].unique()
+        # index: Date; columns: Open, High, Low, Close, Volume
+        price_history_by_ticker: dict[str, pd.DataFrame] = {
+            symbol: Ticker.load_history(
+                symbol=symbol,
+                start=self.trades.loc[
+                    self.trades["Symbol"] == symbol, "Settlement Date"
+                ].min(),
+                end=date.today(),
+            )
+            for symbol in symbols
+        }
+
+        for ticker, price_history in price_history_by_ticker.items():
+            etf_df = self.trades[self.trades["Symbol"] == ticker]
+            etf_df = etf_df.groupby("Settlement Date").agg({"Quantity": "sum"}).reset_index()
+            etf_df.loc[:, "Cumulative Quantity"] = etf_df["Quantity"].cumsum()
+            etf_df.rename(columns={"Settlement Date": "Date"}, inplace=True)
+            etf_df.set_index("Date", inplace=True)
+            etf_df = price_history.merge(
+                etf_df[["Cumulative Quantity"]],
+                how="left",
+                left_index=True,
+                right_index=True,
+            )
+            etf_df['Cumulative Quantity'].ffill(inplace=True)
+            etf_df['Cumulative Quantity'].fillna(0, inplace=True)
+            price_history_by_ticker[ticker] = etf_df
+
+        return price_history_by_ticker
+
     @property
     def id(self) -> str:
         return hashlib.sha256(self.all.to_csv().encode()).hexdigest()
@@ -102,7 +136,6 @@ def load_activity_report(
     df = pd.read_excel(file)
 
     if account_number:
-        print(f"Filtering by account number: {account_number}")
         df = df[df["Account #"] == int(account_number)]
 
     df["Settlement Date"] = pd.to_datetime(df["Settlement Date"])
