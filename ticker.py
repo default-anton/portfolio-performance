@@ -63,6 +63,8 @@ class Ticker:
                 history_df = pd.concat([delta_df, history_df])
 
             history_df = history_df.drop_duplicates().sort_values("Date")
+            # Take the last value of each day
+            history_df = history_df.groupby(history_df.index).last()
             history_df.to_csv(cache_key)
 
             return history_df
@@ -73,6 +75,8 @@ class Ticker:
             end=end,
         )
         history_df = history_df.tz_localize(None)
+        # Take the last value of each day
+        history_df = history_df.groupby(history_df.index).last()
         history_df.to_csv(cache_key)
 
         return history_df
