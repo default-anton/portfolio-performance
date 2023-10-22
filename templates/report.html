@@ -10,17 +10,80 @@
 
 <h1>ETF Portfolio Performance</h1>
 
-<pre>
-Return on Investment (ROI): Current Value / Initial Investment - 1
-{{ activity_report.current_value(boc_usdcad)|currency }} / {{ activity_report.initial_investment()|currency }} - 1 = {{
-(activity_report.roi(boc_usdcad)*100)|round(2) }}%
+<main class="mx-auto">
+  <canvas id="portfolio-growth-chart" width="800" height="400"></canvas>
+  <canvas id="etfs-growth-chart" width="800" height="400"></canvas>
+</main>
 
-Deposits: {{ activity_report.deposits_sum()|currency }}
-Withdrawals: {{ activity_report.withdrawals_sum()|currency }}
-Fees and Rebates: {{ activity_report.fees_and_rebates_sum()|currency }}
-Interest: {{ activity_report.interest_sum()|currency }}
-Trades: {{ activity_report.trades_sum()|currency }}
-Dividends: {{ activity_report.dividends_sum()|currency }}
+<pre>
 BoC USDCAD: {{ boc_usdcad|round(4) }}
 </pre>
+
+
+<script type="text/javascript">
+  (function() {
+    const data = {
+      datasets: [
+        {
+          label: 'Portfolio Growth',
+          data: {{ activity_report.portfolio_growth()|tojson(indent=2) }},
+          borderColor: '#36A2EB',
+          backgroundColor: '#9BD0F5',
+          fill: 'start',
+          lineTension: 0.4
+        }
+      ]
+    };
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        plugins: {
+          filler: {
+            propagate: false,
+          },
+          title: {
+            display: true,
+            text: (ctx) => 'Portfolio Growth',
+          }
+        },
+        interaction: {
+          intersect: false,
+        }
+      },
+    };
+
+    const ctx = document.getElementById('portfolio-growth-chart');
+    window.portfolioGrowthChart = new Chart(ctx, config);
+  })();
+
+
+  (function() {
+    const data = {
+      datasets: {{ activity_report.etfs_growth()|tojson(indent=2) }}
+    };
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        plugins: {
+          filler: {
+            propagate: false,
+          },
+          title: {
+            display: true,
+            text: (ctx) => 'ETFs Growth',
+          }
+        },
+        interaction: {
+          intersect: false,
+        }
+      },
+    };
+
+    const ctx = document.getElementById('etfs-growth-chart');
+    window.etfsGrowthChart = new Chart(ctx, config);
+  })();
+</script>
+
 {% endblock %}

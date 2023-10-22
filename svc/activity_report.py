@@ -6,8 +6,8 @@ from typing import cast
 
 import pandas as pd
 
-from bank_of_canada import get_cadx_rates
-from ticker import Ticker
+from svc.bank_of_canada import get_cadx_rates
+from svc.ticker import Ticker
 
 
 @dataclass
@@ -48,6 +48,20 @@ class ActivityReport:
             return
 
         self.all.to_csv(file_path, index=False)
+
+    def portfolio(self, drop_zero_shares: bool = False) -> pd.DataFrame:
+        ar = self
+        df = (
+            ar.trades.groupby(["Account #", "Symbol"])
+            .agg({"Quantity": "sum"})
+            .reset_index()
+        )
+        if drop_zero_shares:
+            df.drop(df[df["Quantity"] == 0].index, inplace=True)
+
+        df.rename(columns={"Account #": "Account", "Quantity": "Shares"}, inplace=True)
+
+        return df
 
     def current_value(self, boc_usdcad: float) -> float:
         current_values = []
@@ -93,37 +107,77 @@ class ActivityReport:
     def dividends_sum(self) -> float:
         return self.dividends["Net Amount"].sum()
 
-    def etf_growth(self):
-        symbols = self.trades["Symbol"].unique()
+    def net_amount_cumsum(self) -> list[dict]:
+        df = self.all.groupby("Settlement Date").agg({"Net Amount": "sum"}).cumsum()
+        df.reset_index(inplace=True)
+        df["Net Amount"] = df["Net Amount"].round(2)
+        df["Settlement Date"] = df["Settlement Date"].dt.strftime("%Y-%m-%d")
+        df.rename(columns={"Settlement Date": "x", "Net Amount": "y"}, inplace=True)
+        return df.to_dict(orient="records")
+
+    def net_amount_cumsum_labels(self) -> list[str]:
+        return [e["x"] for e in self.net_amount_cumsum()]
+
+    def portfolio_growth(self, accounts: list[int] | None = None) -> pd.DataFrame:
+        if accounts is None or len(accounts) == 0:
+            trades = self.trades
+        else:
+            trades = self.trades[self.trades["Account #"].isin(accounts)]
+
+        symbols = trades["Symbol"].unique()
         # index: Date; columns: Open, High, Low, Close, Volume
         price_history_by_ticker: dict[str, pd.DataFrame] = {
             symbol: Ticker.load_history(
                 symbol=symbol,
-                start=self.trades.loc[
-                    self.trades["Symbol"] == symbol, "Settlement Date"
-                ].min(),
+                start=trades.loc[trades["Symbol"] == symbol, "Settlement Date"].min(),
                 end=date.today(),
             )
             for symbol in symbols
         }
 
+        df = pd.DataFrame()
         for ticker, price_history in price_history_by_ticker.items():
-            etf_df = self.trades[self.trades["Symbol"] == ticker]
-            etf_df = etf_df.groupby("Settlement Date").agg({"Quantity": "sum"}).reset_index()
-            etf_df.loc[:, "Cumulative Quantity"] = etf_df["Quantity"].cumsum()
+            etf_df = trades[trades["Symbol"] == ticker]
+            etf_df = (
+                etf_df.groupby("Settlement Date").agg({"Quantity": "sum"}).reset_index()
+            )
+            etf_df.loc[:, "Shares"] = etf_df["Quantity"].cumsum()
             etf_df.rename(columns={"Settlement Date": "Date"}, inplace=True)
             etf_df.set_index("Date", inplace=True)
             etf_df = price_history.merge(
-                etf_df[["Cumulative Quantity"]],
+                etf_df[["Shares"]],
                 how="left",
                 left_index=True,
                 right_index=True,
             )
-            etf_df['Cumulative Quantity'].ffill(inplace=True)
-            etf_df['Cumulative Quantity'].fillna(0, inplace=True)
-            price_history_by_ticker[ticker] = etf_df
+            currency = trades[trades["Symbol"] == ticker]["Currency"].iloc[0]
+            etf_df = etf_df.assign(Symbol=ticker, Currency=currency)
+            etf_df["Shares"].ffill(inplace=True)
+            etf_df["Shares"].fillna(0, inplace=True)
+            etf_df.reset_index(inplace=True)
+            etf_df.set_index(["Date", "Symbol"], inplace=True)
+            df = pd.concat([df, etf_df])
 
-        return price_history_by_ticker
+        df.sort_index(inplace=True)
+        df.reset_index(inplace=True)
+
+        rates_df = get_cadx_rates(trades["Settlement Date"].min().date(), date.today())
+        df = pd.merge_asof(
+            df,
+            rates_df,
+            left_on="Date",
+            right_on="date",
+            direction="backward",
+        )
+
+        usd_mask = df["Currency"] == "USD"
+        df.loc[usd_mask, ["Open", "High", "Low", "Close"]] = df.loc[
+            usd_mask, ["Open", "High", "Low", "Close"]
+        ].multiply(df.loc[usd_mask, "FXUSDCAD"], axis="index")
+        df.drop(columns=["date", "FXUSDCAD"], inplace=True)
+        df.loc[:, "Gross Amount"] = df["Shares"] * df["Close"]
+
+        return df
 
     @property
     def id(self) -> str:

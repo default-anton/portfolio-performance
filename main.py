@@ -7,9 +7,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import jinja_filters
-from activity_report import ActivityReport, load_activity_report
-from bank_of_canada import get_cadx_rate
+from svc import jinja_filters
+from svc.activity_report import ActivityReport, load_activity_report
+from svc.activity_report_view import ActivityReportView
+from svc.bank_of_canada import get_cadx_rate
 from middlewares.csrf_middleware import CSRFMiddleware
 
 locale.setlocale(locale.LC_ALL, "en_CA.UTF-8")
@@ -69,7 +70,7 @@ def create_report(request: Request, file: UploadFile | None = None):
         "report.html",
         {
             "request": request,
-            "activity_report": activity_report,
+            "activity_report": ActivityReportView(activity_report),
             "boc_usdcad": boc_usdcad,
         },
         headers={"HX-Push-URL": f"/report/{activity_report.id}"},
@@ -92,7 +93,7 @@ def get_report(request: Request, id: str):
         "report.html",
         {
             "request": request,
-            "activity_report": activity_report,
+            "activity_report": ActivityReportView(activity_report),
             "boc_usdcad": boc_usdcad,
         },
     )
