@@ -11,6 +11,19 @@
 <h1>ETF Portfolio Performance</h1>
 
 <main class="mx-auto">
+  <div class="w-full max-w-md mx-auto">
+    <form class="bg-white shadow-md rounded p-4 mb-4 flex justify-around space-x-4">
+      <input type="date" id="start-date" name="start_date" value="{{ start_date }}" class="shadow
+        appearance-none border rounded py-2 px-3 text-slate-700 leading-tight focus:outline-none
+        focus:shadow-outline" placeholder="Start Date"/>
+      <input type="date" id="end-date" name="end_date" value="{{ end_date }}" class="shadow
+        appearance-none border rounded py-2 px-3 text-slate-700 leading-tight focus:outline-none
+        focus:shadow-outline" placeholder="End Date"/>
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
+        focus:outline-none focus:shadow-outline">Apply</button>
+    </form>
+  </div>
+
   <canvas id="portfolio-growth-chart" width="800" height="400"></canvas>
   <canvas id="etfs-growth-chart" width="800" height="400"></canvas>
 </main>
@@ -26,7 +39,7 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
       datasets: [
         {
           label: 'Portfolio Growth',
-          data: {{ activity_report.portfolio_growth()|tojson(indent=2) }},
+          data: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }},
           borderColor: '#36A2EB',
           backgroundColor: '#9BD0F5',
           fill: 'start',
@@ -39,17 +52,11 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
       data: data,
       options: {
         plugins: {
-          filler: {
-            propagate: false,
-          },
           title: {
             display: true,
             text: (ctx) => 'Portfolio Growth',
           }
         },
-        interaction: {
-          intersect: false,
-        }
       },
     };
 
@@ -60,24 +67,18 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
 
   (function() {
     const data = {
-      datasets: {{ activity_report.etfs_growth()|tojson(indent=2) }}
+      datasets: {{ activity_report.etfs_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }}
     };
     const config = {
       type: 'line',
       data: data,
       options: {
         plugins: {
-          filler: {
-            propagate: false,
-          },
           title: {
             display: true,
             text: (ctx) => 'ETFs Growth',
           }
         },
-        interaction: {
-          intersect: false,
-        }
       },
     };
 

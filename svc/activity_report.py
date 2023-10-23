@@ -49,6 +49,10 @@ class ActivityReport:
 
         self.all.to_csv(file_path, index=False)
 
+    @property
+    def start_date(self) -> date:
+        return self.all["Settlement Date"].min().date()
+
     def portfolio(self, drop_zero_shares: bool = False) -> pd.DataFrame:
         ar = self
         df = (
@@ -129,7 +133,9 @@ class ActivityReport:
         price_history_by_ticker: dict[str, pd.DataFrame] = {
             symbol: Ticker.load_history(
                 symbol=symbol,
-                start=trades.loc[trades["Symbol"] == symbol, "Settlement Date"].min(),
+                start=trades.loc[trades["Symbol"] == symbol, "Settlement Date"]
+                .min()
+                .date(),
                 end=date.today(),
             )
             for symbol in symbols

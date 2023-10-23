@@ -7,11 +7,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from middlewares.csrf_middleware import CSRFMiddleware
 from svc import jinja_filters
 from svc.activity_report import ActivityReport, load_activity_report
 from svc.activity_report_view import ActivityReportView
 from svc.bank_of_canada import get_cadx_rate
-from middlewares.csrf_middleware import CSRFMiddleware
 
 locale.setlocale(locale.LC_ALL, "en_CA.UTF-8")
 
@@ -72,13 +72,20 @@ def create_report(request: Request, file: UploadFile | None = None):
             "request": request,
             "activity_report": ActivityReportView(activity_report),
             "boc_usdcad": boc_usdcad,
+            "start_date": None,
+            "end_date": None,
         },
         headers={"HX-Push-URL": f"/report/{activity_report.id}"},
     )
 
 
 @app.get("/report/{id}", response_class=HTMLResponse)
-def get_report(request: Request, id: str):
+def get_report(
+    request: Request,
+    id: str,
+    start_date: date | None = None,
+    end_date: date | None = None,
+):
     try:
         activity_report = ActivityReport.load(id)
     except (OSError, ValueError):
@@ -89,11 +96,19 @@ def get_report(request: Request, id: str):
 
     boc_usdcad = get_cadx_rate(date.today())
 
+    if start_date is not None and start_date < activity_report.start_date:
+        start_date = activity_report.start_date
+
+    if end_date is not None and end_date > date.today():
+        end_date = date.today()
+
     return templates.TemplateResponse(
         "report.html",
         {
             "request": request,
             "activity_report": ActivityReportView(activity_report),
             "boc_usdcad": boc_usdcad,
+            "start_date": start_date,
+            "end_date": end_date,
         },
     )
