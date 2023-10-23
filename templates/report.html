@@ -36,6 +36,7 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
 <script type="text/javascript">
   (function() {
     const data = {
+      labels: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|map(attribute='x')|list|sort|tojson(indent=2) }},
       datasets: [
         {
           label: 'Portfolio Growth',
@@ -67,6 +68,8 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
 
   (function() {
     const data = {
+      // get data first, then map x
+      labels: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|map(attribute='x')|list|sort|tojson(indent=2) }},
       datasets: {{ activity_report.etfs_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }}
     };
     const config = {
