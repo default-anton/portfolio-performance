@@ -1,10 +1,18 @@
 # portfolio-performance
 
 ## TODO
-- [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment.
-- [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time.
 - [ ] Benchmark Comparison: Compare your portfolio’s performance against a benchmark index like the S&P 500 or a relevant ETF
-- [ ] Time-series Plot: A time-series plot of the portfolio value over time would provide a good visual insight into how your portfolio has been performing.
-- [ ] Bar Chart: A bar chart showing the performance of individual assets in your portfolio over time.
+- [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time.
+- [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment.
 - [ ] Basic security hygiene
 - [ ] Make it difficult to brute force a report
+- [ ] Integrate https://www.questrade.com/api/home
+    - [ ] CRUD users
+    - [ ] Session management: Sign up, sign in, sign out
+    - [ ] Session management v2: reset password, forgot password
+    - [ ] Session management v3: 2FA
+    - [ ] Get activities via API
+
+## Done
+- [x] Line Chart: A line chart of the portfolio value over time would provide a good visual insight into how your portfolio has been performing.
+- [x] Line Chart: A line chart showing the performance of individual assets in your portfolio over time.
