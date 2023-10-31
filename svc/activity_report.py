@@ -160,7 +160,7 @@ class ActivityReport:
             etf_df = etf_df.assign(Symbol=ticker, Currency=currency)
             etf_df["Shares"].ffill(inplace=True)
             etf_df["Shares"].fillna(0, inplace=True)
-            etf_df.reset_index(inplace=True)
+            etf_df.reset_index(inplace=True, names=["Date"])
             etf_df.set_index(["Date", "Symbol"], inplace=True)
             df = pd.concat([df, etf_df])
 
