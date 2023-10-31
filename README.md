@@ -2,6 +2,7 @@
 
 ## TODO
 - [ ] Filter by account
+- [ ] Do not fetch ticker history for non-market days; instead, copy the data from the most recent available trading day.
 - [ ] Benchmark Comparison: Compare your portfolio’s performance against a benchmark index like the S&P 500 or a relevant ETF
 - [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time.
 - [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment.
