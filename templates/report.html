@@ -32,15 +32,15 @@
 BoC USDCAD: {{ boc_usdcad|round(4) }}
 </pre>
 
-
+{% set portfolio_growth = activity_report.portfolio_growth(start_date=start_date, end_date=end_date) %}
 <script type="text/javascript">
   (function() {
     const data = {
-      labels: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|map(attribute='x')|list|sort|tojson(indent=2) }},
+      labels: {{ portfolio_growth|map(attribute='x')|list|sort|tojson(indent=2) }},
       datasets: [
         {
           label: 'Portfolio Growth',
-          data: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }},
+          data: {{ portfolio_growth|tojson(indent=2) }},
           borderColor: '#36A2EB',
           backgroundColor: '#9BD0F5',
           fill: 'start',
@@ -65,11 +65,10 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
     window.portfolioGrowthChart = new Chart(ctx, config);
   })();
 
-
   (function() {
     const data = {
       // get data first, then map x
-      labels: {{ activity_report.portfolio_growth(start_date=start_date, end_date=end_date)|map(attribute='x')|list|sort|tojson(indent=2) }},
+      labels: {{ portfolio_growth|map(attribute='x')|list|sort|tojson(indent=2) }},
       datasets: {{ activity_report.etfs_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }}
     };
     const config = {
