@@ -555,36 +555,16 @@ video {
   display: flex;
 }
 
-.h-96 {
-  height: 24rem;
-}
-
-.max-h-96 {
-  max-height: 24rem;
-}
-
-.max-h-\[128rem\] {
-  max-height: 128rem;
-}
-
 .max-h-\[32rem\] {
   max-height: 32rem;
-}
-
-.max-h-48 {
-  max-height: 12rem;
-}
-
-.max-h-\[96rem\] {
-  max-height: 96rem;
 }
 
 .w-full {
   width: 100%;
 }
 
-.max-w-md {
-  max-width: 28rem;
+.max-w-3xl {
+  max-width: 48rem;
 }
 
 .max-w-screen-xl {
