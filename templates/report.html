@@ -11,8 +11,13 @@
 <h1>ETF Portfolio Performance</h1>
 
 <main class="mx-auto">
-  <div class="w-full max-w-md mx-auto">
-    <form class="bg-white shadow-md rounded p-4 mb-4 flex justify-around space-x-4">
+  <div class="w-full max-w-3xl mx-auto">
+    <form class="bg-white shadow-md rounded p-4 mb-4 flex justify-around space-x-4" hx-boost="true">
+      <select name="selected_accounts" multiple class="shadow appearance-none border rounded py-2 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline">
+        {% for account in activity_report.all_accounts %}
+        <option value="{{ account.id }}" {% if account.id in selected_accounts %}selected{% endif %}>{{ account }}</option>
+        {% endfor %}
+      </select>
       <input type="date" id="start-date" name="start_date" value="{{ start_date }}" class="shadow
         appearance-none border rounded py-2 px-3 text-slate-700 leading-tight focus:outline-none
         focus:shadow-outline" placeholder="Start Date"/>
@@ -26,13 +31,13 @@
 
   <canvas id="portfolio-growth-chart" class="w-full max-w-screen-xl p-6 mx-auto max-h-[32rem]"></canvas>
   <canvas id="etfs-growth-chart" class="w-full max-w-screen-xl p-6 mx-auto max-h-[32rem]"></canvas>
+
+  <pre>
+  BoC USDCAD: {{ boc_usdcad|round(4) }}
+  </pre>
 </main>
 
-<pre>
-BoC USDCAD: {{ boc_usdcad|round(4) }}
-</pre>
-
-{% set portfolio_growth = activity_report.portfolio_growth(start_date=start_date, end_date=end_date) %}
+{% set portfolio_growth = activity_report.portfolio_growth() %}
 <script type="text/javascript">
   (function() {
     const data = {
@@ -69,7 +74,7 @@ BoC USDCAD: {{ boc_usdcad|round(4) }}
     const data = {
       // get data first, then map x
       labels: {{ portfolio_growth|map(attribute='x')|list|sort|tojson(indent=2) }},
-      datasets: {{ activity_report.etfs_growth(start_date=start_date, end_date=end_date)|tojson(indent=2) }}
+      datasets: {{ activity_report.etfs_growth()|tojson(indent=2) }}
     };
     const config = {
       type: 'line',

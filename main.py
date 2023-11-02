@@ -65,15 +65,24 @@ def create_report(request: Request, file: UploadFile | None = None):
     activity_report.save()
 
     boc_usdcad = get_cadx_rate(date.today())
+    selected_accounts = list(
+        map(int, request.query_params.getlist("selected_accounts"))
+    )
 
     return templates.TemplateResponse(
         "report.html",
         {
             "request": request,
-            "activity_report": ActivityReportView(activity_report),
+            "activity_report": ActivityReportView(
+                activity_report=activity_report,
+                selected_accounts=selected_accounts,
+                start_date=activity_report.start_date,
+                end_date=date.today(),
+            ),
             "boc_usdcad": boc_usdcad,
-            "start_date": None,
-            "end_date": None,
+            "selected_accounts": selected_accounts,
+            "start_date": activity_report.start_date,
+            "end_date": date.today(),
         },
         headers={"HX-Push-URL": f"/report/{activity_report.id}"},
     )
@@ -96,18 +105,28 @@ def get_report(
 
     boc_usdcad = get_cadx_rate(date.today())
 
-    if start_date is not None and start_date < activity_report.start_date:
+    if start_date is None or start_date < activity_report.start_date:
         start_date = activity_report.start_date
 
-    if end_date is not None and end_date > date.today():
+    if end_date is None or end_date > date.today():
         end_date = date.today()
+
+    selected_accounts = list(
+        map(int, request.query_params.getlist("selected_accounts"))
+    )
 
     return templates.TemplateResponse(
         "report.html",
         {
             "request": request,
-            "activity_report": ActivityReportView(activity_report),
+            "activity_report": ActivityReportView(
+                activity_report=activity_report,
+                selected_accounts=selected_accounts,
+                start_date=start_date,
+                end_date=end_date,
+            ),
             "boc_usdcad": boc_usdcad,
+            "selected_accounts": selected_accounts,
             "start_date": start_date,
             "end_date": end_date,
         },
