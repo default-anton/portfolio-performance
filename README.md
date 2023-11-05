@@ -1,7 +1,6 @@
 # portfolio-performance
 
 ## TODO
-- [ ] Do not fetch ticker history for non-market days; instead, copy the data from the most recent available trading day.
 - [ ] Benchmark Comparison: Compare your portfolio’s performance against a benchmark index like the S&P 500 or a relevant ETF
 - [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time.
 - [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment.
@@ -15,6 +14,7 @@
     - [ ] Get activities via API
 
 ## Done
+- [x] Do not fetch ticker history for non-trading days; instead, copy the data from the most recent available trading day.
 - [x] Filter by account
 - [x] Line Chart: A line chart of the portfolio value over time would provide a good visual insight into how your portfolio has been performing.
 - [x] Line Chart: A line chart showing the performance of individual assets in your portfolio over time.
