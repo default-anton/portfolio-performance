@@ -2,8 +2,9 @@
 
 ## TODO
 - [ ] Benchmark Comparison: Compare your portfolio’s performance against a benchmark index like the S&P 500 or a relevant ETF
-- [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time
 - [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment
+- [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time
+- [ ] Add buy/sell events to the charts
 - [ ] Basic security hygiene
 - [ ] Make it difficult to brute force a report
 - [ ] Integrate https://www.questrade.com/api/home
@@ -12,7 +13,6 @@
     - [ ] Session management v2: reset password, forgot password
     - [ ] Session management v3: 2FA
     - [ ] Get activities via API
-- [ ] Add buy/sell events to the charts
 
 ## Done
 - [x] Fix data anomalies in the portfolio growth chart
