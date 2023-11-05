@@ -78,6 +78,10 @@ class Ticker:
             if need_to_update:
                 history_df.to_csv(cache_key, index=True, index_label="Date")
 
+            # Fill missing values with the last known value
+            history_df = history_df.resample('D').asfreq()
+            history_df.ffill(inplace=True)
+
             return history_df
 
         history_df = yf.Ticker(symbol).history(
@@ -89,6 +93,10 @@ class Ticker:
         # Take the last value of each day
         history_df = history_df.groupby(history_df.index).last()
         history_df.to_csv(cache_key)
+
+        # Fill missing values with the last known value
+        history_df = history_df.resample('D').asfreq()
+        history_df.ffill(inplace=True)
 
         return history_df
 
