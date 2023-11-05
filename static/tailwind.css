@@ -555,32 +555,12 @@ video {
   display: flex;
 }
 
-.max-h-\[32rem\] {
-  max-height: 32rem;
-}
-
-.max-h-4 {
-  max-height: 1rem;
-}
-
-.max-h-16 {
-  max-height: 4rem;
-}
-
-.max-h-14 {
-  max-height: 3.5rem;
-}
-
-.max-h-12 {
-  max-height: 3rem;
-}
-
 .max-h-10 {
   max-height: 2.5rem;
 }
 
-.max-h-8 {
-  max-height: 2rem;
+.max-h-\[32rem\] {
+  max-height: 32rem;
 }
 
 .w-full {
