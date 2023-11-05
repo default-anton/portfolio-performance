@@ -1,6 +1,7 @@
 # portfolio-performance
 
 ## TODO
+- [ ] Fix data anomalies in the portfolio growth chart
 - [ ] Benchmark Comparison: Compare your portfolio’s performance against a benchmark index like the S&P 500 or a relevant ETF
 - [ ] Annualized Return: This will give you a better understanding of your portfolio's performance adjusted for time.
 - [ ] Return on Investment (ROI): (Current Value - Initial Investment) / Initial Investment.
