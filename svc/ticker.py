@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -33,6 +33,12 @@ class Ticker:
 
     @staticmethod
     def load_history(start: date, end: date, symbol: str) -> pd.DataFrame:
+        if start.isoweekday() > 5:
+            start = start - timedelta(days=start.isoweekday() - 5)
+
+        if end.isoweekday() > 5:
+            end = end - timedelta(days=end.isoweekday() - 5)
+
         cache_key = Path("data") / f"{symbol}-history.csv"
         if cache_key.exists():
             history_df = pd.read_csv(cache_key)

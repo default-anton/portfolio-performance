@@ -9,7 +9,7 @@ DB_PATH = Path("data") / "cadx.csv"
 
 
 def get_cadx_rate(d: date) -> float:
-    if d.isoweekday() in [6, 7]:
+    if d.isoweekday() > 5:
         d = d - timedelta(days=d.isoweekday() - 5)
 
     rates_df = get_cadx_rates(d, d)
@@ -17,10 +17,10 @@ def get_cadx_rate(d: date) -> float:
 
 
 def get_cadx_rates(start_date: date, end_date: date):
-    if start_date.isoweekday() in [6, 7]:
+    if start_date.isoweekday() > 5:
         start_date = start_date - timedelta(days=start_date.isoweekday() - 5)
 
-    if end_date.isoweekday() in [6, 7]:
+    if end_date.isoweekday() > 5:
         end_date = end_date - timedelta(days=end_date.isoweekday() - 5)
 
     try:
