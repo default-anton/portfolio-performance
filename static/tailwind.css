@@ -559,6 +559,30 @@ video {
   max-height: 32rem;
 }
 
+.max-h-4 {
+  max-height: 1rem;
+}
+
+.max-h-16 {
+  max-height: 4rem;
+}
+
+.max-h-14 {
+  max-height: 3.5rem;
+}
+
+.max-h-12 {
+  max-height: 3rem;
+}
+
+.max-h-10 {
+  max-height: 2.5rem;
+}
+
+.max-h-8 {
+  max-height: 2rem;
+}
+
 .w-full {
   width: 100%;
 }
@@ -575,6 +599,10 @@ video {
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
+}
+
+.items-center {
+  align-items: center;
 }
 
 .justify-around {
