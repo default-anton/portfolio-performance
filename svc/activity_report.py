@@ -87,41 +87,6 @@ class ActivityReport:
 
         return sum(current_values)
 
-    def initial_investment(self) -> float:
-        return self.deposits["Net Amount"].sum() + self.withdrawals["Net Amount"].sum()
-
-    def roi(self, boc_usdcad: float) -> float:
-        return self.current_value(boc_usdcad) / self.initial_investment() - 1
-
-    def deposits_sum(self) -> float:
-        return self.deposits["Net Amount"].sum()
-
-    def withdrawals_sum(self) -> float:
-        return self.withdrawals["Net Amount"].sum()
-
-    def fees_and_rebates_sum(self) -> float:
-        return self.fees_and_rebates["Net Amount"].sum()
-
-    def interest_sum(self) -> float:
-        return self.interest["Net Amount"].sum()
-
-    def trades_sum(self) -> float:
-        return self.trades["Net Amount"].sum()
-
-    def dividends_sum(self) -> float:
-        return self.dividends["Net Amount"].sum()
-
-    def net_amount_cumsum(self) -> list[dict]:
-        df = self.all.groupby("Settlement Date").agg({"Net Amount": "sum"}).cumsum()
-        df.reset_index(inplace=True)
-        df["Net Amount"] = df["Net Amount"].round(2)
-        df["Settlement Date"] = df["Settlement Date"].dt.strftime("%Y-%m-%d")
-        df.rename(columns={"Settlement Date": "x", "Net Amount": "y"}, inplace=True)
-        return df.to_dict(orient="records")
-
-    def net_amount_cumsum_labels(self) -> list[str]:
-        return [e["x"] for e in self.net_amount_cumsum()]
-
     def portfolio_growth(self, accounts: list[int] | None = None) -> pd.DataFrame:
         if accounts is None or len(accounts) == 0:
             trades = self.trades
