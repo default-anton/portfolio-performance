@@ -45,8 +45,10 @@ class Ticker:
             history_df["Date"] = pd.to_datetime(history_df["Date"])
             history_df.set_index("Date", inplace=True)
             history_df = history_df.tz_localize(None)
+            need_to_update = False
 
             if history_df.index.max() < pd.to_datetime(end):
+                need_to_update = True
                 delta_df = yf.Ticker(symbol).history(
                     interval="1d",
                     start=(history_df.index.max() + pd.Timedelta(days=1))
@@ -58,6 +60,7 @@ class Ticker:
                 history_df = pd.concat([history_df, delta_df])
 
             if history_df.index.min() > pd.to_datetime(start):
+                need_to_update = True
                 delta_df = yf.Ticker(symbol).history(
                     interval="1d",
                     start=start,
@@ -71,7 +74,9 @@ class Ticker:
             history_df = history_df.sort_index()
             # Take the last value of each day
             history_df = history_df.groupby(history_df.index).last()
-            history_df.to_csv(cache_key, index=True, index_label="Date")
+
+            if need_to_update:
+                history_df.to_csv(cache_key, index=True, index_label="Date")
 
             return history_df
 
