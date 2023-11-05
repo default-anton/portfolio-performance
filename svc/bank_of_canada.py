@@ -1,5 +1,5 @@
 import io
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -8,12 +8,21 @@ import requests
 DB_PATH = Path("data") / "cadx.csv"
 
 
-def get_cadx_rate(date: date) -> float:
-    rates_df = get_cadx_rates(date, date)
+def get_cadx_rate(d: date) -> float:
+    if d.isoweekday() in [6, 7]:
+        d = d - timedelta(days=d.isoweekday() - 5)
+
+    rates_df = get_cadx_rates(d, d)
     return rates_df["FXUSDCAD"].iloc[-1]
 
 
 def get_cadx_rates(start_date: date, end_date: date):
+    if start_date.isoweekday() in [6, 7]:
+        start_date = start_date - timedelta(days=start_date.isoweekday() - 5)
+
+    if end_date.isoweekday() in [6, 7]:
+        end_date = end_date - timedelta(days=end_date.isoweekday() - 5)
+
     try:
         rates_df = pd.read_csv(DB_PATH, parse_dates=["date"], date_format="%Y-%m-%d")
         rates_df["date"] = pd.to_datetime(rates_df["date"], format="%Y-%m-%d")
